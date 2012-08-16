@@ -49,7 +49,7 @@ And that's all that's needed for our repository.  No implementing class is neede
 
 ## REST Support ##
 
-The Spring Data REST library works together with the core Spring Data to expose the Repositories.  It includes a servlet that will match incoming requests to a repository.  For example, any request that comes in with the path `sdrdemo/request/customer` it will attempt to fulfill by delegating requests to the `CustomerRepository`. An **HTTP GET** `sdrdemo/request/customer` will return an array of Customers, **GET** `sdrdemo/request/customer/42` will return a Customer with customerId 42,  **DELETE** `sdrdemo/request/customer/42` will delete the specified Customer, etc.   All of this is done with very little configuration. The `@RestResource` annoation can be used to customize url mappsings and hide specific fields, methods.  
+The Spring Data REST library works together with the core Spring Data to expose the repositories.  It includes a servlet that will match incoming requests to a repository.  For example, any request that comes in with the path `sdrdemo/request/customer` it will attempt to fulfill by delegating requests to the `CustomerRepository`. An **HTTP GET** `sdrdemo/request/customer` will return an array of Customers, **GET** `sdrdemo/request/customer/42` will return a Customer with customerId 42,  **DELETE** `sdrdemo/request/customer/42` will delete the specified Customer, etc.   All of this is done with very little configuration. The `@RestResource` annotation can be used to customize url mappings and hide specific fields or methods.  
 
 A full list of features and documentation found here: http://www.springsource.org/spring-data/rest
 
@@ -62,8 +62,6 @@ So how does this work in practice?  First, let's include the dependency for Spri
 	<version>1.0.0.RC2</version>
 </dependency>
 ```
-
-
 
 And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the relevant bytes from the [web.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/webapp/WEB-INF/web.xml):
 
