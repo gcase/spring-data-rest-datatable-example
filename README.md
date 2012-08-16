@@ -17,5 +17,6 @@ Also, `load_names.rb` file is provided, that will load the database with the con
 
 To see the datable in action, point your browser to [http://localhost:8080/sdrdemo/index](http://localhost:8080/sdrdemo/index)
 
+The full writeup is found at [spring-data-rest-datatables.md](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/spring-data-rest-datatables.md)
 
   
