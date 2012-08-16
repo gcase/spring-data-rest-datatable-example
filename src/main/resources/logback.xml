@@ -1,0 +1,18 @@
+<configuration debug="true">
+  
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" />
+  
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+ 		<encoder>
+			<pattern>[DS] %-16(%d{HH:mm:ss.SSS}) %-5level %logger{60} - %msg%n</pattern>
+		</encoder>
+    </appender>
+    
+    <logger name="com.sdg" level="INFO"/>
+    <logger name="org.springframework.batch.core" level="INFO"/>
+ 
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+    
+</configuration>
