@@ -70,11 +70,11 @@ Once this is done, and the web application is started, we can start pushing in d
 
 And you can retrieve data using
 
-`curl http://localhost:8080/sdgBlog/rest/customer`
+`curl http://localhost:8080/sdrdemo/rest/customer`
 
 Remember the `findByNameLike` method we added to our Customer interface?  That is exposed as well, and can be called using
 
-`curl http://localhost:8080/sdgBlog/rest/customer/search/findByNameLike?name=%25J%25
+`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameLike?name=%25J%25
 `
 ## Datatable Integration ##
 
