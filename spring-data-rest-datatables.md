@@ -12,32 +12,35 @@ Let's integrate the Datatables with a repository exposed via Spring Data REST.
 
 Here's our model object, [Customer.java](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/models/Customer.java):
 
-	@Entity
-	@RestResource
-	public class Customer {
-		
-		@Id
-	    @GeneratedValue(strategy = GenerationType.AUTO)
-	    private Long customerId;
+```java
+@Entity
+@RestResource
+public class Customer {
 	
-		private String name;
-		private String email;
-		private String favoriteColor;
-	}
+	@Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long customerId;
 
+	private String name;
+	private String email;
+	private String favoriteColor;
+}
+```
 Getters and setters are ommitted for brevity.  Next, we'll need to define a [CustomerRepository](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/repos/CustomerRepository.java):
 
-	@Repository
-	public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
-		 public List<Customer> findByNameLike(@Param("name") String name);
-	}
-
+```java
+@Repository
+public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
+	 public List<Customer> findByNameLike(@Param("name") String name);
+}
+```
 Notice the support for the findByNameLike queries.  We'll be using this later in our datatable.
 
 And then in our [applicationContext.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring/applicationContext.xml), tell Spring Data where to find our repository interfaces:
 
-	<jpa:repositories base-package="com.sdg.sdrdemo.repos" />
-
+```xml
+<jpa:repositories base-package="com.sdg.sdrdemo.repos" />
+```
 	
 And that's all that's needed for our repository.  Once we tell Spring Data where our repository interfaces are defined, it will allow us to inject the repositories into any of our other Spring managed beans.  Repositories will provide CRUD operations, `findAll`, `findOne`, `exists`, and many more methods, through some sort of black magic I don't pretend to understand.
 
@@ -45,24 +48,26 @@ And that's all that's needed for our repository.  Once we tell Spring Data where
 
 Now we need to enable REST support.  First, let's include the dependency for Spring Data - REST in the [pom.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/pom.xml):
 
-	<dependency>
-		<groupId>org.springframework.data</groupId>
-		<artifactId>spring-data-rest-webmvc</artifactId>
-		<version>1.0.0.RC2</version>
-	</dependency>
-
+```xml
+<dependency>
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-rest-webmvc</artifactId>
+	<version>1.0.0.RC2</version>
+</dependency>
+```
 And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the [web.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/webapp/WEB-INF/web.xml) with the relevant bytes:
 
-	  <servlet>
-	    <servlet-name>exporter</servlet-name>
-	    <servlet-class>org.springframework.data.rest.webmvc.RepositoryRestExporterServlet</servlet-class>
-	    <load-on-startup>1</load-on-startup>
-	  </servlet>
-	  <servlet-mapping>
-	    <servlet-name>exporter</servlet-name>
-	    <url-pattern>/rest/*</url-pattern>
-	  </servlet-mapping>
-
+```xml
+<servlet>
+	<servlet-name>exporter</servlet-name>
+	<servlet-class>org.springframework.data.rest.webmvc.RepositoryRestExporterServlet</servlet-class>
+	<load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+	<servlet-name>exporter</servlet-name>
+	<url-pattern>/rest/*</url-pattern>
+</servlet-mapping>
+```
 
 When the `RepositoryRestExporterServlet` starts up, it will look for a spring config file under META-INF/spring-data-rest ending with -export.xml.  [Here](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring-data-rest/repositories-export.xml) is a very simple one I used for this project.  It simply imports the main applicationContext.xml, which we've already covered above.
 
@@ -84,28 +89,31 @@ Remember the `findByNameLike` method we added to our Customer interface?  That i
 
 Now it's time for the fun stuff.  We'll set up a very simple datatable.  Our HTML looks like this:
 
-	<table id="customers">
-		<thead>
-			<tr>
-				<th>Name</th>
-		    	<th>Email</th>
-			</tr>
-		</thead>
-		<tbody/>
-	</table>
+```html
+<table id="customers">
+	<thead>
+		<tr>
+			<th>Name</th>
+	    	<th>Email</th>
+		</tr>
+	</thead>
+	<tbody/>
+</table>
+```
 
 And finally, our javascript to initialize the datatable:  This will be a very simple example, which will pull the entire list of customers from the database.  All sorting, paging, and filtering is handled on the client's browser.
 
-		$('#customerTable').dataTable({
-			"sAjaxSource" : '${baseUrl}rest/customer?limit=1000',
-			"sAjaxDataProp" : 'results',
-			"aoColumns" : [ {
-				mDataProp : 'name'
-			}, {
-				mDataProp : 'email'
-			} ]
-		});
-
+```javascript
+$('#customerTable').dataTable({
+	"sAjaxSource" : '${baseUrl}rest/customer?limit=1000',
+	"sAjaxDataProp" : 'results',
+	"aoColumns" : [ {
+		mDataProp : 'name'
+	}, {
+		mDataProp : 'email'
+	} ]
+});
+```
 This gives us a table that looks like this.
 
 
@@ -116,68 +124,70 @@ It's not bad for small datasets, but for larger ones, we'll want to do the heavy
 
 Our REST service expects `limit`, `page`, `sort`.  Fortunately, Datatable provides a hook that allows us to override the server call. We'll start by creating a function that translates our Datatable parameters to ones the REST service understands:
 
-	var datatable2Rest = function(sSource, aoData, fnCallback) {
-		
-		//extract name/value pairs into a simpler map for use later
-		var paramMap = {};
-		for ( var i = 0; i < aoData.length; i++) {
-			paramMap[aoData[i].name] = aoData[i].value;
-		}
+```javascript
+var datatable2Rest = function(sSource, aoData, fnCallback) {
 	
-		//page calculations
-		var pageSize = paramMap.iDisplayLength;
-		var start = paramMap.iDisplayStart;
-		var pageNum = (start == 0) ? 1 : (start / pageSize) + 1; // pageNum is 1 based
-		
-		// extract sort information
-		var sortCol = paramMap.iSortCol_0;
-		var sortDir = paramMap.sSortDir_0;
-		var sortName = paramMap['mDataProp_' + sortCol];
-	
-		//create new json structure for parameters for REST request
-		var restParams = new Array();
-		restParams.push({"name" : "limit", "value" : pageSize});
-		restParams.push({"name" : "page", "value" : pageNum });
-		restParams.push({"name" : "sort", "value" : sortName });
-		restParams.push({"name" : sortName + ".dir", "value" : sortDir });
-	
-		//if we are searching by name, override the url and add the name parameter
-		var url = sSource;
-		if (paramMap.sSearch != '') {
-			url = "${baseUrl}rest/customer/search/findByNameLike";
-			var nameParam =  '%' + paramMap.sSearch + '%'; // add wildcards
-			restParams.push({ "name" : "name", "value" : nameParam});
-		}
-		
-		//finally, make the request
-		$.ajax({
-			"dataType" : 'json',
-			"type" : "GET",
-			"url" : url,
-			"data" : restParams,
-			"success" : function(data) {
-				data.iTotalRecords = data.totalCount;
-				data.iTotalDisplayRecords = data.totalCount;
-	
-				fnCallback(data);
-			}
-		});
-	};
+	//extract name/value pairs into a simpler map for use later
+	var paramMap = {};
+	for ( var i = 0; i < aoData.length; i++) {
+		paramMap[aoData[i].name] = aoData[i].value;
+	}
 
-That being done, we override the default Datatable server call with our own:
+	//page calculations
+	var pageSize = paramMap.iDisplayLength;
+	var start = paramMap.iDisplayStart;
+	var pageNum = (start == 0) ? 1 : (start / pageSize) + 1; // pageNum is 1 based
 	
-	$('#customerTable').dataTable({
-		"sAjaxSource" : '${baseUrl}rest/customer',
-		"sAjaxDataProp" : 'results',
-		"aoColumns" : [ {
-			mDataProp : 'name'
-		}, {
-			mDataProp : 'email'
-		} ],
-		"bServerSide" : true,
-		"fnServerData" : datatable2Rest
+	// extract sort information
+	var sortCol = paramMap.iSortCol_0;
+	var sortDir = paramMap.sSortDir_0;
+	var sortName = paramMap['mDataProp_' + sortCol];
+
+	//create new json structure for parameters for REST request
+	var restParams = new Array();
+	restParams.push({"name" : "limit", "value" : pageSize});
+	restParams.push({"name" : "page", "value" : pageNum });
+	restParams.push({"name" : "sort", "value" : sortName });
+	restParams.push({"name" : sortName + ".dir", "value" : sortDir });
+
+	//if we are searching by name, override the url and add the name parameter
+	var url = sSource;
+	if (paramMap.sSearch != '') {
+		url = "${baseUrl}rest/customer/search/findByNameLike";
+		var nameParam =  '%' + paramMap.sSearch + '%'; // add wildcards
+		restParams.push({ "name" : "name", "value" : nameParam});
+	}
+	
+	//finally, make the request
+	$.ajax({
+		"dataType" : 'json',
+		"type" : "GET",
+		"url" : url,
+		"data" : restParams,
+		"success" : function(data) {
+			data.iTotalRecords = data.totalCount;
+			data.iTotalDisplayRecords = data.totalCount;
+
+			fnCallback(data);
+		}
 	});
+};
+```
+That being done, we override the default Datatable server call with our own:
 
+```javascript
+$('#customerTable').dataTable({
+	"sAjaxSource" : '${baseUrl}rest/customer',
+	"sAjaxDataProp" : 'results',
+	"aoColumns" : [ {
+		mDataProp : 'name'
+	}, {
+		mDataProp : 'email'
+	} ],
+	"bServerSide" : true,
+	"fnServerData" : datatable2Rest
+});
+```
 
 #Conclusion#
 
