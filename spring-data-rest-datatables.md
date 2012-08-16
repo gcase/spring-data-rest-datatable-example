@@ -92,15 +92,15 @@ Now it's time for the fun stuff.  We'll set up a very simple datatable.  Our HTM
 
 And finally, our javascript to initialize the datatable:  This will be a very simple example, which will pull the entire list of customers from the database.  All sorting, paging, and filtering is handled on the client's browser.
 
-			$('#customerTable').dataTable({
-				"sAjaxSource" : '${baseUrl}rest/customer?limit=1000',
-				"sAjaxDataProp" : 'results',
-				"aoColumns" : [ {
-					mDataProp : 'name'
-				}, {
-					mDataProp : 'email'
-				} ]
-			});
+		$('#customerTable').dataTable({
+			"sAjaxSource" : '${baseUrl}rest/customer?limit=1000',
+			"sAjaxDataProp" : 'results',
+			"aoColumns" : [ {
+				mDataProp : 'name'
+			}, {
+				mDataProp : 'email'
+			} ]
+		});
 
 This gives us a table that looks like this.
 
@@ -177,7 +177,7 @@ That being done, we override the default Datatable server call with our own:
 
 #Conclusion#
 
-Full source code can be found at this github.  
+Full source code can be found at [github](https://github.com/gcase/spring-data-rest-datatable-example).
 
 I've shown how using the Spring Data REST coupled with the Databable plugin can provide a highly functional table control with a relatively small amount of code.   The javascript used to convert from the Datatable parameters to the REST paging syntax can easily be refactored and shared among many tables.   From here, it'd be trivial to wire in basic CRUD functionality using the exposed REST service.
 
