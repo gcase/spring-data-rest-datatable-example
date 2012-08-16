@@ -10,7 +10,7 @@ Let's integrate the Datatables with a repository exposed via Spring Data REST.
 
 ## The Basics ##
 
-Here's our model object:
+Here's our model object, [Customer.java](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/models/Customer.java):
 
 	@Entity
 	@RestResource
@@ -25,7 +25,7 @@ Here's our model object:
 		private String favoriteColor;
 	}
 
-Getters and setters are ommitted for brevity.  Next, we'll need our repository.
+Getters and setters are ommitted for brevity.  Next, we'll need to define a [CustomerRepository](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/repos/CustomerRepository.java):
 
 	@Repository
 	public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
@@ -34,16 +34,16 @@ Getters and setters are ommitted for brevity.  Next, we'll need our repository.
 
 Notice the support for the findByNameLike queries.  We'll be using this later in our datatable.
 
-And then in our applicationContext.xml, tell Spring Data where to find our repository interfaces:
+And then in our [applicationContext.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring/applicationContext.xml), tell Spring Data where to find our repository interfaces:
 
-	<jpa:repositories base-package="com.sdg.blog.repos" />
+	<jpa:repositories base-package="com.sdg.sdrdemo.repos" />
 
 	
 And that's all that's needed for our repository.  Once we tell Spring Data where our repository interfaces are defined, it will allow us to inject the repositories into any of our other Spring managed beans.  Repositories will provide CRUD operations, `findAll`, `findOne`, `exists`, and many more methods, through some sort of black magic I don't pretend to understand.
 
 ## REST Support ##
 
-Now we need to enable REST support.  First, let's include the dependency for Spring Data -REST in the pom.xml:
+Now we need to enable REST support.  First, let's include the dependency for Spring Data - REST in the [pom.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/pom.xml):
 
 	<dependency>
 		<groupId>org.springframework.data</groupId>
@@ -51,7 +51,7 @@ Now we need to enable REST support.  First, let's include the dependency for Spr
 		<version>1.0.0.RC2</version>
 	</dependency>
 
-And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the web.xml with the relevant bytes:
+And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the [web.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/webapp/WEB-INF/web.xml) with the relevant bytes:
 
 	  <servlet>
 	    <servlet-name>exporter</servlet-name>
@@ -64,6 +64,8 @@ And for this example, we'll have all of the REST requests go thru a separate ser
 	  </servlet-mapping>
 
 
+When the `RepositoryRestExporterServlet` starts up, it will look for a spring config file under META-INF/spring-data-rest ending with -export.xml.  [Here](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring-data-rest/repositories-export.xml) is a very simple one I used for this project.  It simply imports the main applicationContext.xml, which we've already covered above.
+
 Once this is done, and the web application is started, we can start pushing in data like this:
 
 `curl http://localhost:8080/sdrdemo/rest/customer -d "{\"name\":\"John Smith\"}" -H "Content-Type: application/json"`
@@ -74,8 +76,10 @@ And you can retrieve data using
 
 Remember the `findByNameLike` method we added to our Customer interface?  That is exposed as well, and can be called using
 
-`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameLike?name=%25J%25
-`
+`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameLike?name=%25John%25`
+
+(%25 is the `%` wildcard character url-encoded)
+
 ## Datatable Integration ##
 
 Now it's time for the fun stuff.  We'll set up a very simple datatable.  Our HTML looks like this:
