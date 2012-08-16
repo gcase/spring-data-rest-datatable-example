@@ -6,7 +6,7 @@
 
 [Spring Data - REST](http://www.springsource.org/spring-data/rest "Spring Data -Rest")  1.0.0.M2 has just been released.  This combines the already awesome Spring Data Repositories with REST.  If you don't have any experience with Spring Data, [this](http://blog.springsource.com/2011/02/10/getting-started-with-spring-data-jpa/) is a good resource to get started.
 
-Let's integrate the Datatables with a repository exposed via Spring Data REST.
+Let's integrate the Datatables with a repository exposed via Spring Data REST.  In order to do so, we'll create a simple Spring MVC project.  Maven will be used for dependency managements and building.  This article assumes the reader has basic understanding of the Spring Framework and REST.
 
 ## The Basics ##
 
@@ -24,9 +24,11 @@ public class Customer {
 	private String name;
 	private String email;
 	private String favoriteColor;
+
+	//getters and setters omitted
 }
 ```
-Getters and setters are ommitted for brevity.  Next, we'll need to define a [CustomerRepository](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/repos/CustomerRepository.java):
+Next, we'll need to define a [CustomerRepository](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/java/com/sdg/sdrdemo/repos/CustomerRepository.java) interface. The CustomerRepository extends [PagingAndSortingRepository](http://static.springsource.org/spring-data/data-commons/docs/1.3.2.RELEASE/api/org/springframework/data/repository/PagingAndSortingRepository.html), which is what defines the paging, sorting, and CRUD methods.
 
 ```java
 @Repository
@@ -34,6 +36,7 @@ public interface CustomerRepository extends PagingAndSortingRepository<Customer,
 	 public List<Customer> findByNameLike(@Param("name") String name);
 }
 ```
+
 Notice the support for the findByNameLike queries.  We'll be using this later in our datatable.
 
 And then in our [applicationContext.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring/applicationContext.xml), tell Spring Data where to find our repository interfaces:
@@ -42,11 +45,15 @@ And then in our [applicationContext.xml](https://github.com/gcase/spring-data-re
 <jpa:repositories base-package="com.sdg.sdrdemo.repos" />
 ```
 	
-And that's all that's needed for our repository.  Once we tell Spring Data where our repository interfaces are defined, it will allow us to inject the repositories into any of our other Spring managed beans.  Repositories will provide CRUD operations, `findAll`, `findOne`, `exists`, and many more methods, through some sort of black magic I don't pretend to understand.
+And that's all that's needed for our repository.  No implementing class is needed! Once we tell Spring Data where our repository interfaces are defined, it will allow us to inject the repositories into any of our other Spring managed beans.  Repositories will provide CRUD operations, `findAll`, `findOne`, `exists`, and many more methods, through some sort of black magic I don't pretend to understand.
 
 ## REST Support ##
 
-Now we need to enable REST support.  First, let's include the dependency for Spring Data - REST in the [pom.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/pom.xml):
+The Spring Data REST library works together with the core Spring Data to expose the Repositories.  It includes a servlet that will match incoming requests to a repository.  For example, any request that comes in with the path `sdrdemo/request/customer` it will attempt to fulfill by delegating requests to the `CustomerRepository`. An **HTTP GET** `sdrdemo/request/customer` will return an array of Customers, **GET** `sdrdemo/request/customer/42` will return a Customer with customerId 42,  **DELETE** `sdrdemo/request/customer/42` will delete the specified Customer, etc.   All of this is done with very little configuration. The `@RestResource` annoation can be used to customize url mappsings and hide specific fields, methods.  
+
+A full list of features and documentation found here: http://www.springsource.org/spring-data/rest
+
+So how does this work in practice?  First, let's include the dependency for Spring Data - REST in the [pom.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/pom.xml):
 
 ```xml
 <dependency>
@@ -55,7 +62,10 @@ Now we need to enable REST support.  First, let's include the dependency for Spr
 	<version>1.0.0.RC2</version>
 </dependency>
 ```
-And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the [web.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/webapp/WEB-INF/web.xml) with the relevant bytes:
+
+
+
+And for this example, we'll have all of the REST requests go thru a separate servlet.  Here's the relevant bytes from the [web.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/webapp/WEB-INF/web.xml):
 
 ```xml
 <servlet>
@@ -83,7 +93,7 @@ Remember the `findByNameLike` method we added to our Customer interface?  That i
 
 `curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameLike?name=%25John%25`
 
-(%25 is the `%` wildcard character url-encoded)
+(**%25** is the `%` wildcard character url-encoded)
 
 ## Datatable Integration ##
 
@@ -114,13 +124,44 @@ $('#customerTable').dataTable({
 	} ]
 });
 ```
-This gives us a table that looks like this.
 
+A quick explanation of the options we are using:  `sAjaxSource` is the URL that DataTable will make a rquest to.  For this simple example, we hard-coded a limit of 1000.  Otherwise, our service will return only the first 20 results. 
+
+Next, `sAjaxDataProp` tells DataTable that to use the data under the results attribute for our Customer array.
+
+Finally, the 'aoColomns' property stores our column configuration.  This is a very simple table, we just want to map` Customer.name` to the first column, and `Customer.email` to the second column.  
+
+For reference, here is a snippet of the JSON response we'll be getting back from the REST service:
+
+```javascript	
+	{
+	  "results" : [ {
+	    "email" : "mcbrayer.norris@example.com",
+	    "name" : "Norris Mcbrayer",
+	    "_links" : [ {
+	      "rel" : "self",
+	      "href" : "http://localhost:8080/sdrdemo/rest/customer/1"
+	    } ]
+	  }, {
+	    "email" : "kubota.al@example.com",
+	    "name" : "Al Kubota",
+	    "_links" : [ {
+	      "rel" : "self",
+	      "href" : "http://localhost:8080/sdrdemo/rest/customer/2"
+	    } ]
+	  },
+	// more results here
+    ]
+	}
+```
+You can also see here how the REST response provides hrefs for each Customer.  A more advanced example could use these links to provide detailed forms, or Update / Delete functionality.
+
+Anyways, once we have that in place, here is what our generated table looks like:
 
 ![Datatable Example](https://dl.dropbox.com/u/336272/datatable_ex.png)
 
 
-It's not bad for small datasets, but for larger ones, we'll want to do the heavy lifting on the server.  In order to so, we set the bServerSide parameter to true.  This will tell Datatable to perform an AJAX request for each new page, sort command, or filter.  The problem is, Datatable is going to be sending us hungarian notation style parameters  parameters like `iDisplayLength`, `iDisplayStart`, `mDataProp_0`, `iSortCol_0`, `sSortDir_0`
+It's not bad for small datasets, but for larger ones, we'll want to do the heavy lifting on the server.  In order to so, we set the `bServerSide` parameter to true.  This will tell Datatable to perform an AJAX request for each new page, sort command, or filter.  The problem is, Datatable is going to be sending us hungarian notation style parameters  parameters like `iDisplayLength`, `iDisplayStart`, `mDataProp_0`, `iSortCol_0`, `sSortDir_0`
 
 Our REST service expects `limit`, `page`, `sort`.  Fortunately, Datatable provides a hook that allows us to override the server call. We'll start by creating a function that translates our Datatable parameters to ones the REST service understands:
 
@@ -173,7 +214,8 @@ var datatable2Rest = function(sSource, aoData, fnCallback) {
 	});
 };
 ```
-That being done, we override the default Datatable server call with our own:
+
+That being done, our new DataTable setup looks like this.  `bServerSide` is set to true, and we've set `fnServerData` with the `datatable2Rest` function that was just defined.
 
 ```javascript
 $('#customerTable').dataTable({
@@ -188,6 +230,7 @@ $('#customerTable').dataTable({
 	"fnServerData" : datatable2Rest
 });
 ```
+
 
 #Conclusion#
 
