@@ -234,7 +234,6 @@ Once you refresh your browser, your datatable will appear to work just as it alw
 
 #Conclusion#
 
-Full source code can be found at [github](https://github.com/gcase/spring-data-rest-datatable-example).
-
 I've shown how using the Spring Data REST coupled with the Databable plugin can provide a highly functional table control with a relatively small amount of code.   The javascript used to convert from the Datatable parameters to the REST paging syntax can easily be refactored and shared among many tables.   From here, it'd be trivial to wire in basic CRUD functionality using the exposed REST service.
 
+Full source code can be found at [github](https://github.com/gcase/spring-data-rest-datatable-example).  In order to run the example, simply clone the project, and then execute `mvn jetty:run` from the command line (Assuming you have maven installed).
