@@ -228,6 +228,8 @@ $('#customerTable').dataTable({
 	"fnServerData" : datatable2Rest
 });
 ```
+Once you refresh your browser, your datatable will appear to work just as it always has, but it will be sending an AJAX request for each sort, page, and search command.  The server side processing will be much more scalable for larger datasets.
+
 
 
 #Conclusion#
