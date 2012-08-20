@@ -10,5 +10,5 @@ import com.sdg.sdrdemo.models.Customer;
 
 @Repository
 public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
-	 public List<Customer> findByNameLike(@Param("name") String name);
+	 public List<Customer> findByNameContains(@Param("name") String name);
 }

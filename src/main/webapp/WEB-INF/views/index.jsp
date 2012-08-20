@@ -58,9 +58,8 @@
 			//if we are searching by name, override the url and add the name parameter
 			var url = sSource;
 			if (paramMap.sSearch != '') {
-				url = "${baseUrl}rest/customer/search/findByNameLike";
-				var nameParam =  '%' + paramMap.sSearch + '%'; // add wildcards
-				restParams.push({ "name" : "name", "value" : nameParam});
+				url = "${baseUrl}rest/customer/search/findByNameContains";
+				restParams.push({ "name" : "name", "value" : paramMap.sSearch});
 			}
 			
 			//finally, make the request

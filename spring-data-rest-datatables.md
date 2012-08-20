@@ -33,11 +33,11 @@ Next, we'll need to define a [CustomerRepository](https://github.com/gcase/sprin
 ```java
 @Repository
 public interface CustomerRepository extends PagingAndSortingRepository<Customer, Long> {
-	 public List<Customer> findByNameLike(@Param("name") String name);
+	 public List<Customer> findByNameContains(@Param("name") String name);
 }
 ```
 
-Notice the support for the findByNameLike queries.  We'll be using this later in our datatable.
+Notice the support for the `findByNameContains` query. Spring Data will recognize the `name` property from Customer, and the `Contains` keyword to build the appropriate query.  We'll be using this method later in our datatable.
 
 And then in our [applicationContext.xml](https://github.com/gcase/spring-data-rest-datatable-example/blob/master/src/main/resources/META-INF/spring/applicationContext.xml), tell Spring Data where to find our repository interfaces:
 
@@ -87,11 +87,10 @@ And you can retrieve data using
 
 `curl http://localhost:8080/sdrdemo/rest/customer`
 
-Remember the `findByNameLike` method we added to our Customer interface?  That is exposed as well, and can be called using
+Remember the `findByNameContains` method we added to our Customer interface?  That is exposed as well, and can be called using
 
-`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameLike?name=%25John%25`
+`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameContains?name=John
 
-(**%25** is the `%` wildcard character url-encoded)
 
 ## Datatable Integration ##
 
@@ -192,9 +191,8 @@ var datatable2Rest = function(sSource, aoData, fnCallback) {
 	//if we are searching by name, override the url and add the name parameter
 	var url = sSource;
 	if (paramMap.sSearch != '') {
-		url = "${baseUrl}rest/customer/search/findByNameLike";
-		var nameParam =  '%' + paramMap.sSearch + '%'; // add wildcards
-		restParams.push({ "name" : "name", "value" : nameParam});
+		url = "${baseUrl}rest/customer/search/findByNameContains";
+		restParams.push({ "name" : "name", "value" :  paramMap.sSearch});
 	}
 	
 	//finally, make the request
