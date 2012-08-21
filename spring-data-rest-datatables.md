@@ -89,7 +89,7 @@ And you can retrieve data using
 
 Remember the `findByNameContains` method we added to our Customer interface?  That is exposed as well, and can be called using
 
-`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameContains?name=John
+`curl http://localhost:8080/sdrdemo/rest/customer/search/findByNameContains?name=John`
 
 
 ## Datatable Integration ##
