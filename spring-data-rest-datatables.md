@@ -126,7 +126,7 @@ A quick explanation of the options we are using:  `sAjaxSource` is the URL that 
 
 Next, `sAjaxDataProp` tells DataTable that to use the data under the results attribute for our Customer array.
 
-Finally, the 'aoColomns' property stores our column configuration.  This is a very simple table, we just want to map` Customer.name` to the first column, and `Customer.email` to the second column.  
+Finally, the 'aoColomns' property stores our column configuration.  This is a very simple table, we just want to map `Customer.name` to the first column, and `Customer.email` to the second column.  
 
 For reference, here is a snippet of the JSON response we'll be getting back from the REST service:
 
