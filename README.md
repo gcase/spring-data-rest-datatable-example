@@ -1,6 +1,6 @@
 # Spring Data - REST integration with Datatables #
 
-This project demonstrates the basic functionality of integrating Spring Data - REST with the Datatable jquery plugin.  The original blog post can be found here [Insert SDG Blog Link Here].
+This project demonstrates the basic functionality of integrating Spring Data - REST with the Datatable jquery plugin.  The original blog post can be found at [solutiondesign.com](http://solutiondesign.com/data-integration-with-rest/)
 
 
 ## Getting Started ##
